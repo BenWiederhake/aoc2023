@@ -94,19 +94,38 @@ class Solver
             {
                 bool negative = line.StartsWith('L');
                 var delta = Int32.Parse(line[1..]);
-                // Console.WriteLine("    " + negative + " " + delta);
+                Console.WriteLine("    " + negative + " " + delta);
+                // First, simplify "delta" to reduce runtime:
+                zeroCount += delta / 100;
+                delta %= 100;
+                Console.WriteLine("    (" + negative + " " + delta + ")");
+                if (delta == 0) {
+                    // We don't want to count any further movement, because it doesn't affect the "number of times any click causes the dial to point at 0", and we already counted that.
+                    continue;
+                }
+                // Next, deal with all the individual (edge) cases:
+                bool dialWasZero = dialPosition == 0;
                 dialPosition += (negative ? -1 : 1) * delta;
-                // Console.WriteLine("(->" + dialPosition + ")");
-                dialPosition %= 100;
-                // If dialPosition ended up negative (e.g. line is "L12345"), then modulo is still be negative.
-                // Note that this is the same stupid design choice as C, Rust, and Java make, despite mathematics defining it differently for hundreds of years.
-                // Fun fact: This is a consequence of defining integer division as rounding towards zero.
-                dialPosition += 100;
-                dialPosition %= 100;
-                // Console.WriteLine("->" + dialPosition);
-                if (dialPosition == 0) {
+                // At this point, dialPosition is between 0-99 and 99+99 inclusively.
+                if (dialPosition < 0) {
+                    Debug.Assert(dialPosition >= -99);
+                    dialPosition += 100;
+                    if (!dialWasZero) {
+                        zeroCount += 1;
+                    }
+                } else if (dialPosition == 0) {
+                    Debug.Assert(negative);
+                    // We came down from above, so there was a tick, so we need to register it.
+                    // This case is the main reason why the count can't be easily derived from division.
+                    // A more visual way to show it is the sequence "L50 R23 L23 R77 L77", which never wraps around but keeps hitting zero.
+                    zeroCount += 1;
+                } else if (dialPosition >= 100) {
+                    Debug.Assert(dialPosition <= 99+99);
+                    dialPosition -= 100;
                     zeroCount += 1;
                 }
+                Console.WriteLine("-> " + dialPosition + " (" + zeroCount + ")");
+                // Nothing to do in the "0 < dialPosition < 100" case.
             }
         }
 
