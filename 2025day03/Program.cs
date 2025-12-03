@@ -5,11 +5,18 @@ using System.Text;
 
 class Solver
 {
-    static int FindJoltage(char[] bank) {
-        char firstChar = bank[..(bank.Length - 1)].Max();
-        int firstCharIndex = Array.IndexOf(bank, firstChar);
-        char secondChar = bank[(firstCharIndex + 1)..].Max();
-        int result = Int32.Parse("" + firstChar + secondChar);
+    const int JOLTAGE_DIGITS = 12;
+
+    static long FindJoltage(char[] bank) {
+        Debug.Assert(bank.Length >= JOLTAGE_DIGITS);
+        int firstValidIndex = 0;
+        var sb = new StringBuilder();
+        for (int i = 0; i < JOLTAGE_DIGITS; ++i) {
+            char taken = bank[firstValidIndex..(bank.Length - JOLTAGE_DIGITS + i + 1)].Max();
+            sb.Append(taken);
+            firstValidIndex = Array.IndexOf(bank, taken, firstValidIndex) + 1;
+        }
+        long result = Int64.Parse(sb.ToString());
         Console.WriteLine("+ " + result);
         return result;
     }
@@ -20,7 +27,7 @@ class Solver
         if (args.Length > 0) {
             filename = args[0];
         }
-        int sumOfJoltages = 0;
+        long sumOfJoltages = 0;
         using (StreamReader sr = new StreamReader(filename))
         {
             Debug.Assert(sr != null);
