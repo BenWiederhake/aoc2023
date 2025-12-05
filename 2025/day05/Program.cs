@@ -75,6 +75,14 @@ class RangeSet {
         Debug.Assert(onlyRelevantIndex + 1 == SortedRanges.Count || ingredientId < SortedRanges[onlyRelevantIndex + 1].Lo);
         return ingredientId <= r.Hi;
     }
+
+    public long SizeOfFreshRanges() {
+        long size = 0;
+        foreach (var r in SortedRanges) {
+            size += r.Hi - r.Lo + 1;
+        }
+        return size;
+    }
 }
 
 // `Solver` instances are mutable, similar to `StringBuilder`.
@@ -138,12 +146,13 @@ class Solver
                 solver.AddFreshRange(parts[0], parts[1]);
             }
             var rangeSet = solver.ToRangeSet();
-            while ((line = sr.ReadLine()) != null) {
-                if (rangeSet.Contains(Int64.Parse(line))) {
-                    numFreshIngredients += 1;
-                }
-            }
+            Console.WriteLine("size of fresh ranges = " + rangeSet.SizeOfFreshRanges());
+            //while ((line = sr.ReadLine()) != null) {
+            //    if (rangeSet.Contains(Int64.Parse(line))) {
+            //        numFreshIngredients += 1;
+            //    }
+            //}
         }
-        Console.WriteLine("numFresh = " + numFreshIngredients);
+        //Console.WriteLine("numFresh = " + numFreshIngredients);
     }
 }
