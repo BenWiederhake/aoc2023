@@ -5,10 +5,10 @@ using System.Text;
 
 // `Range` instances are immutable.
 struct Range : IComparable<Range> {
-    public int Lo { get; }
-    public int Hi { get; }
+    public long Lo { get; }
+    public long Hi { get; }
 
-    public Range(int lo, int hi) {
+    public Range(long lo, long hi) {
         Debug.Assert(lo <= hi);
         Lo = lo;
         Hi = hi;
@@ -27,16 +27,16 @@ class RangeSet {
     private List<Range> SortedRanges;
 
     public RangeSet(List<Range> sortedRanges) {
-        Console.WriteLine("Got " + sortedRanges.Count + " sorted (and merged) ranges:");
-        foreach (var e in sortedRanges) {
-            Console.WriteLine(" * " + e.Lo + "-" + e.Hi);
-        }
+        // Console.WriteLine("Got " + sortedRanges.Count + " sorted (and merged) ranges:");
+        // foreach (var e in sortedRanges) {
+        //     Console.WriteLine(" * " + e.Lo + "-" + e.Hi);
+        // }
         SortedRanges = sortedRanges;
     }
 
     // - Either returns a valid index of a range whose "Lo" is less-or-equal the requested ingredientId (and is the maximum such index),
     // - or returns -1.
-    public int IndexOfFloorRange(int ingredientId) {
+    public int IndexOfFloorRange(long ingredientId) {
         // https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1.binarysearch?view=net-10.0
         // """
         //     The zero-based index of item in the sorted List<T>, if item is found; otherwise, a negative number
@@ -58,7 +58,7 @@ class RangeSet {
         return ceilingIndex - 1;
     }
 
-    public bool Contains(int ingredientId) {
+    public bool Contains(long ingredientId) {
         int onlyRelevantIndex = IndexOfFloorRange(ingredientId);
         // Console.WriteLine($"Looking up {ingredientId}, will look only at index {onlyRelevantIndex}");
         if (onlyRelevantIndex < 0) {
@@ -86,14 +86,16 @@ class Solver
     }
 
     public void AddFreshRange(string lo, string hi) {
-        UnsortedRanges.Add(new Range(Int32.Parse(lo), Int32.Parse(hi)));
+        Range r = new(Int64.Parse(lo), Int64.Parse(hi));
+        // Console.WriteLine($"Parsed {lo}-{hi} as {r.Lo}-{r.Hi}");
+        UnsortedRanges.Add(r);
     }
 
     public RangeSet ToRangeSet() {
-        Console.WriteLine("Got " + UnsortedRanges.Count + " raw (unsorted, unmerged) ranges:");
-        foreach (var e in UnsortedRanges) {
-            Console.WriteLine(" * " + e.Lo + "-" + e.Hi);
-        }
+        // Console.WriteLine("Got " + UnsortedRanges.Count + " raw (unsorted, unmerged) ranges:");
+        // foreach (var e in UnsortedRanges) {
+        //     Console.WriteLine(" * " + e.Lo + "-" + e.Hi);
+        // }
         UnsortedRanges.Sort();
         List<Range> sortedRanges = new();
         Range? pending = null;
@@ -109,7 +111,7 @@ class Solver
                 pending = range;
             } else {
                 // Merge:
-                pending = new Range(pending.Value.Lo, range.Hi);
+                pending = new Range(pending.Value.Lo, Math.Max(pending.Value.Hi, range.Hi));
             }
         }
         if (pending.HasValue) {
@@ -137,7 +139,7 @@ class Solver
             }
             var rangeSet = solver.ToRangeSet();
             while ((line = sr.ReadLine()) != null) {
-                if (rangeSet.Contains(Int32.Parse(line))) {
+                if (rangeSet.Contains(Int64.Parse(line))) {
                     numFreshIngredients += 1;
                 }
             }
